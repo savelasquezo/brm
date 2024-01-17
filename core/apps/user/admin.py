@@ -13,6 +13,42 @@ admin.site = admin_site
 admin_site.site_header = "BRM"
 
 
+class CartItemInline(admin.StackedInline):
+    model = models.CartItem
+    extra = 0
+
+    fieldsets = (
+        (" ", {"fields": 
+            (('item','ammount'),)
+            }
+        ),
+    )
+
+    # def get_readonly_fields(self, request, obj=None):
+    #    return ['item','ammount']
+
+    # def has_add_permission(self, request, obj=None):
+    #    return False
+
+
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('user','last_updated','total')
+
+    fieldsets = (
+        ("", {"fields": 
+            (('user','last_updated','total'),)
+            }
+        ),
+    )
+
+    def get_fieldsets(self, request, obj=None):
+        fieldsets = super().get_fieldsets(request, obj)
+        self.inlines = [CartItemInline]
+        return fieldsets
+
+    def get_readonly_fields(self, request, obj=None):
+       return ['user','last_updated','total']
+
 class UserAccountAdmin(BaseUserAdmin):
     list_display = ('username', 'email','phone')
     search_fields = ('username', 'email')
@@ -62,3 +98,4 @@ class UserAccountAdmin(BaseUserAdmin):
 
 
 admin.site.register(models.UserAccount, UserAccountAdmin)
+admin.site.register(models.ShoppingCart, ShoppingCartAdmin)

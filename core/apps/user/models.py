@@ -5,6 +5,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.item.models import Item
+
 class UserAccountManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -53,3 +55,33 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         indexes = [models.Index(fields=['email']),]
         verbose_name = _("Usuario")
         verbose_name_plural = _("Usuarios")
+
+
+class ShoppingCart(models.Model):
+    user = models.OneToOneField(UserAccount, on_delete=models.CASCADE)
+    items = models.ManyToManyField(Item, through='CartItem')
+    date_created = models.DateTimeField(_("Fecha de Creacion"),default=timezone.now)
+    last_updated = models.DateTimeField(_("Ultima Actualizacion"),default=timezone.now)
+
+    total = models.FloatField(_("Total"),default=0, null=False, blank=False,
+        help_text="$Total del Carrito (COP)")
+
+    def __str__(self):
+        return f"Shopcart-{self.user}"
+
+    class Meta:
+        verbose_name = _("Shocart")
+        verbose_name_plural = _("Shocarts")
+
+class CartItem(models.Model):
+    shoppcart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    ammount = models.PositiveIntegerField(_("Cantidad"),default=1)
+
+    def __str__(self):
+        return f"Shopcart-{self.item}"
+
+    class Meta:
+        verbose_name = _("Objeto")
+        verbose_name_plural = _("Objetos")
+

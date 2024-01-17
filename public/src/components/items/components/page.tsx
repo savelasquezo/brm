@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { imageLoader } from '@/utils/imageConfig';
 
 import {AiOutlineClose, AiOutlineShoppingCart} from 'react-icons/ai'
+import { GiCheckMark } from "react-icons/gi";
+
 
 type ItemsProps = {
   session: Session | null | undefined;
@@ -18,6 +20,11 @@ interface ItemsData {
   price: number;
   ammount: number;
   banner: string;
+}
+
+interface FormDataItem {
+  ammount: string;
+  uuid: string;
 }
 
 export const fetchItems = async () => {
@@ -42,17 +49,13 @@ export const fetchItems = async () => {
 const Header: React.FC<ItemsProps> = ({ session  }) => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [listItems, setListItems] = useState<ItemsData[]>([]);
 
   const [showModal, setShowModal] = useState(false);
   const [closingModal, setClosingModal] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('');
-  const [itemId, setItemId] = useState<any>('');
-
-  const openModal = (tab: string, itemId: any) => {
-    setItemId(itemId);
+  const openModal = () => {
     setShowModal(true);
-    setActiveTab(tab);
   };
 
   const closeModal = () => {
@@ -63,16 +66,24 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
       }, 500);
   };
 
-  const [listItems, setListItems] = useState<ItemsData[]>([]);
-
-  const [formData, setFormData] = useState({
-    email: session?.user?.email || '',
-    uuid: '',
-    ammount: '',
-  });
+  //const [formData, setFormData] = useState({
+  //  email: session?.user?.email || '',
+  //  uuid: '',
+  //  ammount: '',
+  //});
+  const [formData, setFormData] = useState<{ [key: string]: FormDataItem }>({});
 
   const {email, uuid, ammount } = formData;
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  //const onChange = (e: React.ChangeEvent<HTMLInputElement>, uuid: string) => setFormData(
+  //  { ...formData, [e.target.name]: e.target.value }
+  //);
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>, uuid: string) => {
+    const newFormData = { ...formData };
+    newFormData[uuid] = { ...newFormData[uuid], [e.target.name]: e.target.value };
+    setFormData(newFormData);
+  };
+  
 
   useEffect(() => {
     fetchItems()
@@ -84,8 +95,25 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
       });
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, listItem: any) => {
     e.preventDefault();
+    setSuccess('');
+    setError('');
+
+    const formAmmount = formData[listItem.uuid]?.ammount
+
+    const isAmmountValid = /^[0-9]+$/.test(formAmmount);
+    if (!isAmmountValid) {
+      setError('¡Error - Ingrese un numero valido!');
+      return;
+    }
+
+
+    if (formAmmount > listItem.ammount) {
+      setError('¡Lamentablemente no hay suficiente Inventario!');
+      return;
+    }
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/user/add-item-shopcart/`, 
       {
@@ -105,27 +133,30 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
         setSuccess('¡Articulo agregado al carrito!');
       }
     } catch (error) {
-      return NextResponse.json({ error: 'There was an error with the network request' });
+        setError('¡Error al Agregar Articulo! Intentelo Nuevamente');
     }
   };
 
   return (
-    <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-center py-4">
+    <div className="w-full h-full bg-white grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-center py-4 px-8">
         {listItems.length > 0 ? (
             listItems.map((listItem, i) => (
-            <div key={i} className="items-center rounded-sm h-40 md:h-80 shadow-inner">
-                <Image loader={imageLoader} width={1240} height={550} src={listItem.banner} className="h-[calc(100%-16px)] w-full object-cover rounded-t-sm z-0 bg-red-400" alt="" />
-                <form className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full px-4 py-1'>
-                  <input className='bg-white'
-                    type="number"
-                    name="ammount"
-                    id="ammount"
-                    minLength={1}
-                    onChange={(e) => onChange(e)}
-                    required
-                  />
-                  <input type="hiden" name="uuid" id="uuid" value={listItem.uuid} required/>
-                  <button onClick={handleSubmit} type='submit' className="flex items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300 px-2 py-0.5 rounded border-b-2 h-8">
+            <div key={i} className="relative items-center rounded-sm h-40 md:h-80 shadow-inner">
+                <span className='absolute top-0 flex items-center justify-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 border-slate-950 h-8 w-full uppercase'>{listItem.name}</span>
+                <Image loader={imageLoader} width={1240} height={550} src={listItem.banner} className="bg-slate-100 h-[calc(100%-16px)] mt-8 w-full object-cover rounded-t-sm z-0" alt="" />
+                <form className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full'>
+                <input
+                className='bg-gray-100 ml-4 text-center rounded-sm outline-0 focus:outline-0 disabled:border-0 w-20'
+                type="text"
+                name="ammount"
+                id={`ammount_${listItem.uuid}`}
+                minLength={1}
+                maxLength={6}
+                value={formData[listItem.uuid]?.ammount || ''}
+                onChange={(e) => onChange(e, listItem.uuid)}
+                required
+              />
+                  <button onClick={(event) => {handleSubmit(event, listItem); openModal();}} type='submit' className="flex items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300 h-full px-4">
                       <span className='text-white font-semibold text-md'><AiOutlineShoppingCart /></span>
                       <span className="block text-white shadow-inner text-xs uppercase font-semibold">
                           Agregar
@@ -139,8 +170,24 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
               <p>No hay productos disponibles</p>
             </div>
           )}
-        
-
+          {showModal && (
+          <div className={`fixed top-0 left-0 w-full h-full flex items-center justify-center transition bg-opacity-50 bg-gray-900 backdrop-blur-sm z-40 ${closingModal ? "animate-fade-out animate__animated animate__fadeOut" : "animate-fade-in animate__animated animate__fadeIn"}`}>
+              <div className="w-1/3 h-14 px-4 bg-gray-800 rounded-lg flex flex-row-reverse items-center justify-between">
+                <button onClick={closeModal} className='text-xl text-gray-400 hover:text-gray-600 transition-colors duration-300' ><AiOutlineClose /></button>
+                {error && (
+                <div className="flex flex-row items-center gap-2 text-red-400 text-sm">
+                  <span className='text-lg'><AiOutlineClose /></span>
+                  {error}
+                </div>)}
+                {success && (
+                <div className="flex flex-row gap-2 items-center text-green-400 text-sm">
+                  <span className='text-lg'><GiCheckMark /></span>
+                  {success}
+                </div>)}
+                {!error && !success && (<div className="text-gray-400 text-xs mt-2 h-6">¿Necesitas Ayuda? support@brm.com</div>)}
+              </div>
+            </div>
+        )}
     </div>
 );
 };

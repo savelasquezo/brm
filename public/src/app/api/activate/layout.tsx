@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'ZoeX',
+  title: 'BRM',
   description:
-    'ZoeX - Apuestas/Rifas',
+    'BRM - Simon Velasquez',
 };
 
 export default function ActivateLayout({ children }: { children: React.ReactNode }) {

@@ -14,7 +14,7 @@ class Invoice(models.Model):
     uuid = models.CharField(_("Codigo"), max_length=128, null=False, blank=False)
     client = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
 
-    state = models.CharField(_("Estado de la Factura"), choices=states, max_length=128, null=False, blank=False)
+    state = models.CharField(_("Estado de la Factura"), default='pending', choices=states, max_length=128, null=False, blank=False)
     date_sold = models.DateField(_("Fecha"), default=timezone.now)
     total = models.FloatField(_("Total"), null=False, blank=False,
         help_text="$Costo Total (COP)")

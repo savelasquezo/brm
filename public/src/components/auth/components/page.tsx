@@ -68,6 +68,9 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
 
+    const [error, setError] = useState<string>('');
+    const [success, setSuccess] = useState<string>('');
+
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [closingModal, setClosingModal] = useState(false);
@@ -102,7 +105,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
           setShopCart(data);
         })
         .catch((error) => {
-          console.error('Error al obtener datos iniciales de imagenSliders:', error);
+          console.error('', error);
         });
 
     }, [searchParams]);
@@ -111,6 +114,13 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const openModal = (tab: string) => {
       setShowModal(true);
       setActiveTab(tab);
+      fetchShopCart()
+      .then((data) => {
+        setShopCart(data);
+      })
+      .catch((error) => {
+        console.error('Error with the network request:', error);
+      });
     };
 
     const openCartModal = (tab: string) => {
@@ -123,8 +133,51 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
       setTimeout(() => {
         setShowModal(false);
         setClosingModal(false);
+        setSuccess('');
+        setError('');
         router.push('/');
       }, 500);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      setSuccess('');
+      setError('');
+
+      const email = session?.user?.email
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/invoice/request-invoice/`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `JWT ${session?.user?.accessToken}`,
+          },
+          body: JSON.stringify({    
+            email,
+          }),
+        });
+        const data = await res.json();
+        if (!data.error) {
+          setSuccess('¡Facturacion Exitosa!');
+        }
+      } catch (error) {
+        setError('¡Error Inesperado! Intentalo Nuevamente');
+        return NextResponse.json({ error: 'There was an error with the network request' });
+  
+      } finally {
+        fetchShopCart()
+        .then((data) => {
+          setShopCart(data);
+        })
+        .catch((error) => {
+          console.error('Error with the network request:', error);
+        });
+        setLoading(false);
+      }
     };
 
     return (
@@ -132,10 +185,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
             {session && session?.user? (
               <div className='inline-flex gap-x-4'>
                 <button onClick={() => openModal('shopcart')}  className="bg-blue-500 hover:bg-blue-700 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">
-                  <span className='flex flex-row text-lg items-center justify-between h-4 gap-x-2'>
-                    <AiOutlineShoppingCart /> 
-                    <span className='text-sm'>({shopCart?.items?.length ?? ""})</span>
-                  </span>
+                  <span className='text-lg'><AiOutlineShoppingCart /> </span>
                 </button>
                 <button onClick={() => {signOut();}} className="bg-pink-700 hover:bg-pink-900 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">Salir</button>
               </div>
@@ -233,19 +283,28 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                           ))}
                         </table>
                         )}
-                        <div className='absolute bottom-10 w-full flex flex-col gap-y-4'>
+                        <div className='absolute bottom-10 w-full flex flex-col gap-y-2'>
                           <span className='flex flex-row justify-between items-center'>
                             <p className='text-gray-400 text-sm'>Total (IVA incl.):</p>
                             <p className='text-white font-semibold text-sm'>${shopCart.total.toLocaleString()} (COP)</p>
                           </span>
-                          {loading ? (
-                            <button type="button" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
+                          {shopCart.items.length < 1 ? (
+                          <p onClick={closeModal} className="h-10 bg-green-500 text-white font-semibold rounded-md py-2 px-4 w-full text-sm text-center uppercase">
+                            PAGAR
+                          </p>
+                          ) : (
+                          loading ? (
+                            <button type="button" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
                               <CircleLoader loading={loading} size={25} color="#1c1d1f" />
                             </button>
                           ) : (
-                            <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
-                          )}
-                        </div>                                           
+                            <button onClick={handleSubmit} type="submit" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
+                          )
+                        )}
+                        { success && (<div className="text-lime-400 text-xs">{success}</div>)}
+                        { error && (<div className="text-red-400 text-xs">{error}</div>)}
+                        { !error && !success && (<div className="text-gray-400 text-xs">¿Necesitas Ayuda? support@brm.com</div>)}    
+                        </div>                                       
                       </div>
                     )}
                   </div>

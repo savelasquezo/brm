@@ -37,7 +37,6 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
   const openModal = () => {
     setShowModal(true);
   };
-
   const closeModal = () => {
       setClosingModal(true);
       setTimeout(() => {
@@ -73,7 +72,6 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
       }
     };
   },);
-
 
 
   const handleSubmit = async (e: React.FormEvent, listItem: any) => {

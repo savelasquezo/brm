@@ -54,7 +54,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/home/savelasquezo/BRM/core/logs/core.log',
+            'filename': os.path.join(BASE_DIR, 'logs', 'core.log'),
         },
     },
     'loggers': {
@@ -65,7 +65,6 @@ LOGGING = {
         },
     },
 }
-
 
 # Application definition
 

@@ -1,12 +1,12 @@
 from rest_framework import serializers
-import apps.invoice.models as models
+from .models import Invoice, ItemList
 
-class ItemSerializer(serializers.ModelSerializer):
+class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Invoice
+        model = Invoice
         fields = '__all__'
 
-class ItemSerializer(serializers.ModelSerializer):
+class ItemListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.ItemList
+        model = ItemList
         fields = '__all__'

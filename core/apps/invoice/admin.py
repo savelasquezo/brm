@@ -1,27 +1,29 @@
 from django.contrib import admin
 from django.conf.locale.es import formats as es_formats
+from django.http.request import HttpRequest
 
-import apps.invoice.models as models
-
+from .models import Invoice, ItemList
 
 class ItemListInline(admin.StackedInline):
     
-    model = models.ItemList
+    model = ItemList
     extra = 0
 
     fieldsets = (
         (" ", {"fields": (
-            ('item','ammount'),
+            ('item'),
+            ('ammount','price')
                 )
             }
         ),
     )
 
     def get_readonly_fields(self, request, obj=None):
-       return ['item','ammount']
+       return ['item','ammount','price']
 
     def has_add_permission(self, request, obj=None):
        return False
+
 
 class InvoiceAdmin(admin.ModelAdmin):
 
@@ -68,4 +70,4 @@ class InvoiceAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
          return False
 
-admin.site.register(models.Invoice, InvoiceAdmin)
+admin.site.register(Invoice, InvoiceAdmin)

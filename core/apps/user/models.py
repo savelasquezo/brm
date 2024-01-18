@@ -78,6 +78,7 @@ class CartItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     price = models.FloatField(_("Precio"), null=False, blank=False,
         help_text="$Costo del Producto (COP)")
+    
     ammount = models.PositiveIntegerField(_("Cantidad"),default=1)
 
     def __str__(self):

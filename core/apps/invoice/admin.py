@@ -17,11 +17,11 @@ class ItemListInline(admin.StackedInline):
         ),
     )
 
-    # def get_readonly_fields(self, request, obj=None):
-    #    return ['item','ammount']
+    def get_readonly_fields(self, request, obj=None):
+       return ['item','ammount']
 
-    # def has_add_permission(self, request, obj=None):
-    #    return False
+    def has_add_permission(self, request, obj=None):
+       return False
 
 class InvoiceAdmin(admin.ModelAdmin):
 
@@ -63,9 +63,9 @@ class InvoiceAdmin(admin.ModelAdmin):
             self.inlines = []
         return fieldsets
 
-    #readonly_fields=['uuid','client','total','date_sold']
+    readonly_fields=['uuid','client','total','date_sold']
 
-    # def has_add_permission(self, request):
-    #     return False
+    def has_add_permission(self, request):
+         return False
 
 admin.site.register(models.Invoice, InvoiceAdmin)

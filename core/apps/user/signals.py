@@ -7,3 +7,4 @@ from . import models
 def create_user_shopcart(sender, instance, created, **kwargs):
     if created:
         models.ShoppingCart.objects.create(user=instance)
+

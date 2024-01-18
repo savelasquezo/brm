@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Session } from 'next-auth';
-import { NextResponse } from 'next/server';
 import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { imageLoader } from '@/utils/imageConfig';
 
@@ -26,25 +24,6 @@ interface ItemsData {
 interface FormDataItem {
   ammount: string;
   uuid: string;
-}
-
-export const fetchItems = async () => {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/item/fetch-items/`,{
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Server responded with an error' });
-    }
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    return NextResponse.json({ error: 'There was an error with the network request' });
-  }
 }
 
 const Header: React.FC<ItemsProps> = ({ session  }) => {
@@ -141,14 +120,14 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
   };
 
   return (
-    <div className="w-full h-full bg-white grid grid-cols-2 md:grid-cols-4 gap-4 items-center justify-center py-4 px-8">
+    <div className="w-full h-full bg-white grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-center justify-center py-4 px-8 gap-y-8">
         {listItems.length > 0 ? (
             listItems.map((listItem, i) => (
-            <div key={i} className="relative items-center rounded-sm h-40 md:h-80 shadow-inner">
+            <div key={i} className="relative items-center rounded-sm h-full shadow-inner">
                 <span className='absolute top-0 flex items-center justify-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 border-slate-950 h-8 w-full uppercase'>{listItem.name}</span>
-                <Image loader={imageLoader} width={1240} height={550} src={`${process.env.NEXT_PUBLIC_APP_API_URL}${listItem.banner}`} className="bg-slate-100 h-[calc(100%-16px)] mt-8 w-full object-cover rounded-t-sm z-0" alt="" />
+                <Image loader={imageLoader} width={1240} height={550} src={`${process.env.NEXT_PUBLIC_APP_API_URL}${listItem.banner}`} className="bg-slate-100 mt-8 object-cover rounded-t-sm z-0" alt="" />
                 {session && session?.user? (
-                  <form className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full'>
+                  <form className='w-full h-10 flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950'>
                     <input
                       className='bg-gray-100 ml-4 text-center rounded-sm outline-0 focus:outline-0 disabled:border-0 w-20'
                       type="text"
@@ -160,7 +139,7 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
                       onChange={(e) => onChange(e, listItem.uuid)}
                       required
                     />
-                    <button onClick={(event) => {handleSubmit(event, listItem); openModal();}} type='submit' className="flex items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300 h-full px-4">
+                    <button onClick={(event) => {handleSubmit(event, listItem); openModal();}} type='submit' className="flex h-full p-2 items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300">
                         <span className='text-white font-semibold text-md'><AiOutlineShoppingCart /></span>
                         <span className="block text-white shadow-inner text-xs uppercase font-semibold">
                             Agregar

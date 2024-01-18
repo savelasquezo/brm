@@ -29,7 +29,7 @@ class addItemShopcart(generics.GenericAPIView):
     - 400 Bad Request: If there is an error, the item is not found, or the request is malformed.
         Response: {'error': 'NotFound Lottery.'}
     """
-    serializer_class = serializers.CartItemSerializer
+    serializer_class = serializers.AddItemSerializer
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -67,3 +67,30 @@ class addItemShopcart(generics.GenericAPIView):
             with open(os.path.join(settings.BASE_DIR, 'logs/core.log'), 'a') as f:
                 f.write("addItemShopcart {} --> Error: {}\n".format(date, str(e)))
             return Response({'error': 'NotFound ShoppingCart.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class fetchShopCart(generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        email = "email@email.com"
+
+        try:
+            user = models.UserAccount.objects.get(email=email)
+        except models.UserAccount.DoesNotExist:
+            return Response({'detail': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            shopping_cart = models.ShoppingCart.objects.get(user=user)
+            cart_items = models.CartItem.objects.filter(shoppcart=shopping_cart)
+        except models.ShoppingCart.DoesNotExist:
+            return Response({'detail': 'Carrito de compras no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        cart_items_serializer = serializers.CartItemSerializer(cart_items, many=True)
+        response_data = {
+            'id': shopping_cart.id,
+            'last_updated': shopping_cart.last_updated.strftime('%m/%d/%Y'),
+            'total': shopping_cart.total,
+            'user': str(shopping_cart.user),
+            'items': cart_items_serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

@@ -44,6 +44,9 @@ class ItemList(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
+    price = models.FloatField(_("Precio"), null=False, blank=False,
+        help_text="$Costo del Producto (COP)")
+
     ammount = models.PositiveBigIntegerField(_("Cantidad"), default=1000, null=False, blank=False,
         help_text="#Numero de Productos en Comprados")
 

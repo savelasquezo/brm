@@ -31,6 +31,6 @@ class ItemAdmin(admin.ModelAdmin):
     list_filter=['is_active']
     es_formats.DATETIME_FORMAT = "d M Y"
 
-    #readonly_fields=['uuid','date_joined',]
+    readonly_fields=['uuid','date_joined',]
 
 admin.site.register(models.Item, ItemAdmin)

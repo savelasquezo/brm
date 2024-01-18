@@ -16,7 +16,7 @@ from django.core.asgi import get_asgi_application
 
 from apps.item.routing import websocket_urlpatterns as item_websocket
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 application = get_asgi_application()
 
 async_websocket_urlpatterns = (item_websocket)

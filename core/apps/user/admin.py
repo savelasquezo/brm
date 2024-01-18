@@ -24,11 +24,11 @@ class CartItemInline(admin.StackedInline):
         ),
     )
 
-    # def get_readonly_fields(self, request, obj=None):
-    #    return ['item','price','ammount']
+    def get_readonly_fields(self, request, obj=None):
+        return ['item','price','ammount']
 
-    # def has_add_permission(self, request, obj=None):
-    #    return False
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
@@ -93,8 +93,8 @@ class UserAccountAdmin(BaseUserAdmin):
         self.inlines = []
         return fieldsets
 
-    # def get_readonly_fields(self, request, obj=None):
-    #    return ['username','email','date_joined']
+    def get_readonly_fields(self, request, obj=None):
+        return ['username','email','date_joined']
 
 
 admin.site.register(models.UserAccount, UserAccountAdmin)

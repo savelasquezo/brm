@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
+import { NextResponse } from 'next/server';
 
 import LoginModal from "./loginModal";
 import RegisterModal from "./registerModal";
@@ -15,6 +16,54 @@ type AuthProps = {
   session: Session | null | undefined;
 };
 
+interface ShopCartData {
+  id: number;
+  last_updated: string;
+  total: number;
+  user: string;
+  items: CartItemData[];
+}
+
+interface ItemDetails {
+  uuid: string;
+  lot_number: string;
+  name: string;
+  price: number;
+  ammount: number;
+  banner: string;
+  date_joined: string;
+  is_active: boolean;
+}
+
+interface CartItemData {
+  id: number;
+  price: number;
+  ammount: number;
+  shoppcart: number;
+  item: number;
+  details: ItemDetails;
+}
+
+export const fetchShopCart = async () => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/user/fetch-shopcart/`,{
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Server responded with an error' });
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return NextResponse.json({ error: 'There was an error with the network request' });
+  }
+}
+
+
 const Auth: React.FC<AuthProps> = ({ session  }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -22,13 +71,16 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [closingModal, setClosingModal] = useState(false);
+    
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+    const [shopCart, setShopCart] = useState<ShopCartData | null>(null);
 
     const updateForgotPasswordModalState = (value: boolean): void => {
       setShowForgotPasswordModal(value);
     };
   
     const [activeTab, setActiveTab] = useState('login');
+    const [activeCartTab, setActiveCartTab] = useState('cart');
   
     useEffect(() => {
       if (searchParams.get('login')) {
@@ -44,12 +96,26 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
         setShowForgotPasswordModal(true);
         setActiveTab('forgot_password_confirm');
       }
+
+      fetchShopCart()
+        .then((data) => {
+          setShopCart(data);
+        })
+        .catch((error) => {
+          console.error('Error al obtener datos iniciales de imagenSliders:', error);
+        });
+
     }, [searchParams]);
 
-
+    
     const openModal = (tab: string) => {
       setShowModal(true);
       setActiveTab(tab);
+    };
+
+    const openCartModal = (tab: string) => {
+      setShowModal(true);
+      setActiveCartTab(tab);
     };
   
     const closeModal = () => {
@@ -66,9 +132,9 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
             {session && session?.user? (
               <div className='inline-flex gap-x-4'>
                 <button onClick={() => openModal('shopcart')}  className="bg-blue-500 hover:bg-blue-700 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">
-                  <span className='flex flex-row text-lg items-center justify-between h-4 w-10'>
+                  <span className='flex flex-row text-lg items-center justify-between h-4 gap-x-2'>
                     <AiOutlineShoppingCart /> 
-                    <p className='text-sm'>(2)</p>
+                    <span className='text-sm'>({shopCart?.items?.length ?? ""})</span>
                   </span>
                 </button>
                 <button onClick={() => {signOut();}} className="bg-pink-700 hover:bg-pink-900 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">Salir</button>
@@ -131,15 +197,60 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
               <div className="relative w-1/3 h-3/4">
                 <button onClick={closeModal} className='absolute top-4 right-4 text-xl text-gray-400 hover:text-gray-600 transition-colors duration-300' ><AiOutlineClose /></button>
                 <div className="w-full h-full bg-gray-800 rounded-2xl p-6">
-                  <div className={`h-full my-4 flex flex-col justify-between items-center px-4 py-2 ${activeTab === 'shopcart' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
-                    <p>Aqui van todos los detalles</p>
-                    {loading ? (
-                      <button type="button" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
-                        <CircleLoader loading={loading} size={25} color="#1c1d1f" />
-                      </button>
-                    ) : (
-                      <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
+                  <div className='flex flex-row w-full items-center'>
+                      <button onClick={() => openCartModal('cart')} className={`text-gray-100 rounded-md px-2 py-0.5 inline-flex text-sm font-semibold transition duration-300 mr-2 ${activeCartTab === 'cart' ?  'bg-blue-500 hover:bg-blue-600' : ''}`}>Carrito</button>
+                      <button onClick={() => openCartModal('invoice')} className={`text-gray-100 rounded-md px-2 py-0.5 inline-flex text-sm font-semibold transition duration-300 mr-2 ${activeCartTab === 'invoice' ? 'bg-yellow-700 hover:bg-yellow-800' : ''}`}>Historial</button>
+                  </div>
+                  <div className={`h-full my-4 flex flex-col justify-start items-center px-4 py-2 ${activeCartTab === 'cart' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
+                    {shopCart && (
+                      <div key={shopCart.id} className='relative w-full h-full flex flex-col'>
+                        <span className='flex flex-row justify-between my-2'>
+                          <span className='flex flex-col justify-center items-start'>
+                            <p className='font-semibold text-sm text-gray-200'>CARRITO DE COMPRA</p>
+                            <p className='text-xs text-gray-400'>{shopCart.user}</p>
+                          </span>
+                          <p className='text-gray-400'>{shopCart.last_updated}</p>
+                        </span>
+                        {shopCart.items.length > 0 && (
+                        <table className="min-w-full text-center text-sm font-light my-4">
+                          <thead className="font-medium text-white">
+                            <tr className="border-b border-slate-900 uppercase text-xs">
+                              <th scope="col" className=" px-2 py-1 text-left">Nombre</th>
+                              <th scope="col" className=" px-2 py-1">Lote</th>
+                              <th scope="col" className=" px-2 py-1">Precio</th>
+                              <th scope="col" className=" px-2 py-1">Cantidad</th>
+                              <th scope="col" className=" px-2 py-1">Subtotal</th>
+                            </tr>
+                          </thead>
+                          {shopCart.items.map((item) => (
+                            <tr key={item.id} className="border-b border-slate-700 uppercase text-xs text-white">
+                              <td className="whitespace-nowrap px-2 py-1 text-xs capitalize text-left">{item.details.name}</td>
+                              <td className="whitespace-nowrap px-2 py-1">{item.details.lot_number}</td>
+                              <td className="whitespace-nowrap px-2 py-1">{item.price.toLocaleString()}</td>
+                              <td className="whitespace-nowrap px-2 py-1">{item.ammount}</td>
+                              <td className="whitespace-nowrap px-2 py-1">{(item.ammount*item.price).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </table>
+                        )}
+                        <div className='absolute bottom-10 w-full flex flex-col gap-y-4'>
+                          <span className='flex flex-row justify-between items-center'>
+                            <p className='text-gray-400 text-sm'>Total (IVA incl.):</p>
+                            <p className='text-white font-semibold text-sm'>${shopCart.total.toLocaleString()} (COP)</p>
+                          </span>
+                          {loading ? (
+                            <button type="button" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
+                              <CircleLoader loading={loading} size={25} color="#1c1d1f" />
+                            </button>
+                          ) : (
+                            <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
+                          )}
+                        </div>                                           
+                      </div>
                     )}
+                  </div>
+                  <div className={`h-full my-4 flex flex-col justify-start items-center px-4 py-2 ${activeCartTab === 'invoice' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
+                      <p>Facturas</p>
                   </div>
                 </div>
               </div>

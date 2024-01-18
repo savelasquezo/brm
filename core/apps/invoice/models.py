@@ -45,10 +45,10 @@ class ItemList(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
 
     price = models.FloatField(_("Precio"), null=False, blank=False,
-        help_text="$Costo del Producto (COP)")
+        help_text="$Costo Unitario del Producto (COP)")
 
     ammount = models.PositiveBigIntegerField(_("Cantidad"), default=1000, null=False, blank=False,
-        help_text="#Numero de Productos en Comprados")
+        help_text="#Numero de Productos Comprados")
 
 
     def __str__(self):

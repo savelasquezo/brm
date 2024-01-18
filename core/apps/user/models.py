@@ -27,15 +27,9 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(_("ID"),default=uuid.uuid4, unique=True, primary_key=True)
     username = models.CharField(_("Usuario"),max_length=64, unique=True)
    
-    first_name = models.CharField(_("Nombre"), max_length=150, null=True, blank=True)
-    last_name = models.CharField(_("Apellido"), max_length=150, null=True, blank=True)
     email = models.EmailField(_("Email"),unique=True, null=False, blank=False)
-    phone = models.CharField(_("Telefono"),max_length=64, null=True, blank=True)
-    
+    city = models.CharField(_("Ciudad"),max_length=64, null=True, blank=True)
     street = models.CharField(_("Direccion"),max_length=128, unique=False, null=True, blank=True)
-    city = models.CharField(_("Ciudad"),max_length=128, unique=False, null=True, blank=True)
-    postal_code = models.CharField(_("Postal"),max_length=128, unique=False, null=True, blank=True)
-    country = models.CharField(_("Pais"),max_length=128, unique=False, null=True, blank=True)
 
     date_joined = models.DateField(_("Fecha Ingreso"),default=timezone.now)
     last_joined = models.DateField(_("Ultimo Ingreso"),default=timezone.now)
@@ -46,7 +40,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    REQUIRED_FIELDS = ['username','city','street']
 
     def __str__(self):
         return f"{self.email}"

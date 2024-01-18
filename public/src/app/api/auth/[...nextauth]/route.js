@@ -41,6 +41,8 @@ const handler = NextAuth({
         const user = {
           username: userData.username,
           email: userData.email,
+          city: userData.city,
+          street: userData.street,
           accessToken: access,
           refreshToken: refresh,
         };
@@ -78,6 +80,8 @@ const handler = NextAuth({
         session.user = {
           username: userData.username,
           email: userData.email,
+          city: userData.city,
+          street: userData.street,
           accessToken: token.accessToken,
           refreshToken: token.refreshToken,
         };

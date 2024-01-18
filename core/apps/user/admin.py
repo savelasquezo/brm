@@ -50,15 +50,13 @@ class ShoppingCartAdmin(admin.ModelAdmin):
        return ['user','last_updated','total']
 
 class UserAccountAdmin(BaseUserAdmin):
-    list_display = ('username', 'email','phone')
+    list_display = ('username', 'email','city')
     search_fields = ('username', 'email')
 
     fieldsets = (
         (None, {'fields': (('email','is_active','is_staff'), 'password')}),
             ('Información', {'fields': (
             ('username','date_joined'),
-            ('first_name','last_name'),
-            ('phone'),
         )}),
     )
 
@@ -72,8 +70,7 @@ class UserAccountAdmin(BaseUserAdmin):
             }   
         ),
         ("Detalles", {"fields": 
-            (('country','postal_code'),
-             ('city','street'),)
+            (('city','street'),)
             }
         ),
     )
@@ -82,7 +79,7 @@ class UserAccountAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'email', 'password1', 'password2','phone'),
+            'fields': ('username', 'email', 'password1', 'password2'),
         }),
     )
 

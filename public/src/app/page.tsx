@@ -7,6 +7,8 @@ import React from 'react';
 import { SessionProvider } from 'next-auth/react';
 
 import Header from '@/components/header/index';
+import Footer from '@/components/footer/index';
+
 import Items from '@/components/items/index';
 
 export default function Home() {
@@ -16,6 +18,7 @@ export default function Home() {
       <main className='w-full h-full'>
         <Items />
       </main>
+      <Footer />
     </SessionProvider>
   );
 }

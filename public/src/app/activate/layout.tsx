@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'BRM',
   description:
-    'BRM - Simon Velasquez',
+    'BRM - Activaciones',
 };
 
 export default function ActivateLayout({ children }: { children: React.ReactNode }) {

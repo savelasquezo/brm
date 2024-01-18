@@ -79,8 +79,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ closeModal }) => {
                     <button type="submit" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Ingresar</button>
                 )}
             </form>
-            { error && (<div className="text-red-400 text-sm mt-2">{error}</div>)}
-            { !error && (<div className="text-gray-400 text-xs mt-2 h-6">¿Necesitas Ayuda? support@brm.com</div>)}
+            { error && (<div className="text-red-400 text-xs mt-2">{error}</div>)}
+            { !error && (<div className="text-gray-400 text-xs mt-2">¿Necesitas Ayuda? support@brm.com</div>)}
         </div>
     );
 };

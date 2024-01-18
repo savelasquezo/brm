@@ -16,14 +16,6 @@ type AuthProps = {
   session: Session | null | undefined;
 };
 
-interface ShopCartData {
-  id: number;
-  last_updated: string;
-  total: number;
-  user: string;
-  items: CartItemData[];
-}
-
 interface ItemDetails {
   uuid: string;
   lot_number: string;
@@ -35,6 +27,28 @@ interface ItemDetails {
   is_active: boolean;
 }
 
+interface ShopInvoiceData {
+  last_updated: string;
+  user: string;
+  items: InvoiceItemData[];
+}
+
+interface InvoiceItemData {
+  invoice: number;
+  item: number;
+  price: number;
+  ammount: number;
+  details: ItemDetails;
+}
+
+interface ShopCartData {
+  id: number;
+  last_updated: string;
+  total: number;
+  user: string;
+  items: CartItemData[];
+}
+
 interface CartItemData {
   id: number;
   price: number;
@@ -44,12 +58,33 @@ interface CartItemData {
   details: ItemDetails;
 }
 
-export const fetchShopCart = async () => {
+export const fetchShopCart = async (userJWT: any) => {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/user/fetch-shopcart/`,{
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/user/fetch-shopcart/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `JWT ${userJWT}`,
+        },
+      },
+    );
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Server responded with an error' });
+    }
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return NextResponse.json({ error: 'There was an error with the network request' });
+  }
+}
+
+export const fetchInvoiceItems = async (userJWT: any) => {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_API_URL}/app/invoice/fetch-invoice-items/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `JWT ${userJWT}`,
         },
       },
     );
@@ -68,15 +103,13 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const [error, setError] = useState<string>('');
-    const [success, setSuccess] = useState<string>('');
-
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [closingModal, setClosingModal] = useState(false);
     
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
     const [shopCart, setShopCart] = useState<ShopCartData | null>(null);
+    const [shopInvoice, setShopInvoice] = useState<ShopInvoiceData | null>(null);
 
     const updateForgotPasswordModalState = (value: boolean): void => {
       setShowForgotPasswordModal(value);
@@ -100,13 +133,22 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
         setActiveTab('forgot_password_confirm');
       }
 
-      fetchShopCart()
+      fetchShopCart(session?.user?.accessToken)
         .then((data) => {
           setShopCart(data);
         })
         .catch((error) => {
           console.error('', error);
-        });
+      });
+
+      fetchInvoiceItems(session?.user?.accessToken)
+      .then((data) => {
+        setShopInvoice(data);
+      })
+      .catch((error) => {
+        console.error('', error);
+      });
+
 
     }, [searchParams]);
 
@@ -114,12 +156,19 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const openModal = (tab: string) => {
       setShowModal(true);
       setActiveTab(tab);
-      fetchShopCart()
+      fetchShopCart(session?.user?.accessToken)
+        .then((data) => {
+          setShopCart(data);
+        })
+        .catch((error) => {
+          console.error('', error);
+      });
+      fetchInvoiceItems(session?.user?.accessToken)
       .then((data) => {
-        setShopCart(data);
+        setShopInvoice(data);
       })
       .catch((error) => {
-        console.error('Error with the network request:', error);
+        console.error('', error);
       });
     };
 
@@ -133,8 +182,6 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
       setTimeout(() => {
         setShowModal(false);
         setClosingModal(false);
-        setSuccess('');
-        setError('');
         router.push('/');
       }, 500);
     };
@@ -142,8 +189,6 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setLoading(true);
-      setSuccess('');
-      setError('');
 
       const email = session?.user?.email
 
@@ -162,14 +207,19 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
         });
         const data = await res.json();
         if (!data.error) {
-          setSuccess('¡Facturacion Exitosa!');
+          fetchInvoiceItems(session?.user?.accessToken)
+          .then((data) => {
+            setShopInvoice(data);
+          })
+          .catch((error) => {
+            console.error('', error);
+          });
         }
       } catch (error) {
-        setError('¡Error Inesperado! Intentalo Nuevamente');
         return NextResponse.json({ error: 'There was an error with the network request' });
   
       } finally {
-        fetchShopCart()
+        fetchShopCart(session?.user?.accessToken)
         .then((data) => {
           setShopCart(data);
         })
@@ -197,7 +247,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
             )}
             {showModal && activeTab !== 'shopcart' && (
             <div className={`fixed top-0 left-0 w-full h-full flex items-center justify-center transition bg-opacity-50 bg-gray-900 backdrop-blur-sm z-40 ${closingModal ? "animate-fade-out animate__animated animate__fadeOut" : "animate-fade-in animate__animated animate__fadeIn"}`}>
-                <div className="relative w-1/4 flex h-3/4">
+                <div className="relative w-1/4 flex h-4/5">
                   <button onClick={closeModal} className='absolute top-4 right-4 text-xl text-gray-400 hover:text-gray-600 transition-colors duration-300' ><AiOutlineClose /></button>
                   <div className="w-full h-full bg-gray-800 rounded-2xl p-6">
                     <div className='flex flex-row w-full items-center'>
@@ -253,7 +303,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                   </div>
                   <div className={`h-full my-4 flex flex-col justify-start items-center px-4 py-2 ${activeCartTab === 'cart' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
                     {shopCart && (
-                      <div key={shopCart.id} className='relative w-full h-full flex flex-col'>
+                      <div className='relative w-full h-full flex flex-col'>
                         <span className='flex flex-row justify-between my-2'>
                           <span className='flex flex-col justify-center items-start'>
                             <p className='font-semibold text-sm text-gray-200'>CARRITO DE COMPRA</p>
@@ -261,7 +311,63 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                           </span>
                           <p className='text-gray-400'>{shopCart.last_updated}</p>
                         </span>
-                        {shopCart.items.length > 0 && (
+                        {shopCart?.items?.length > 0 ? (
+                        <div className='h-hull w-full'>
+                          <table className="min-w-full text-center text-sm font-light my-4">
+                            <thead className="font-medium text-white">
+                              <tr className="border-b border-slate-900 uppercase text-xs">
+                                <th scope="col" className=" px-2 py-1 text-left">Nombre</th>
+                                <th scope="col" className=" px-2 py-1">Lote</th>
+                                <th scope="col" className=" px-2 py-1">Precio</th>
+                                <th scope="col" className=" px-2 py-1">Cantidad</th>
+                                <th scope="col" className=" px-2 py-1">Subtotal</th>
+                              </tr>
+                            </thead>
+                            {shopCart?.items?.map((item) => (
+                              <tr key={item.id} className="border-b border-slate-700 uppercase text-xs text-white">
+                                <td className="whitespace-nowrap px-2 py-1 text-xs capitalize text-left">{item.details.name}</td>
+                                <td className="whitespace-nowrap px-2 py-1">{item.details.lot_number}</td>
+                                <td className="whitespace-nowrap px-2 py-1">{item.price.toLocaleString()}</td>
+                                <td className="whitespace-nowrap px-2 py-1">{item.ammount}</td>
+                                <td className="whitespace-nowrap px-2 py-1">{(item.ammount*item.price).toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </table>
+                          <div className='absolute bottom-10 w-full flex flex-col gap-y-2'>
+                            <span className='flex flex-row justify-between items-center'>
+                              <p className='text-gray-400 text-sm'>Total (IVA incl.):</p>
+                              <p className='text-white font-semibold text-sm'>${shopCart?.total?.toLocaleString()} (COP)</p>
+                            </span>
+                            {shopCart?.items?.length < 1 ? (
+                              <p className='h-10 text-white font-semibold w-full text-center flex items-center justify-center'></p>
+                            ) : (
+                              loading ? (
+                                <button type="button" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
+                                  <CircleLoader loading={loading} size={25} color="#1c1d1f" />
+                                </button>
+                                ) : (
+                                <button onClick={handleSubmit} type="submit" className="h-10 uppercase bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
+                              )
+                            )}   
+                          </div>
+                        </div>
+                        ) : (
+                          <span className='w-full h-full flex items-start justify-center mt-10 text-white font-thin text-sm'>¡No hay elementos en el carrito!</span>
+                        )}                                     
+                      </div>
+                    )}
+                  </div>
+                  <div className={`h-full my-4 flex flex-col justify-start items-center px-4 py-2 ${activeCartTab === 'invoice' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
+                  {shopInvoice && (
+                      <div className='relative w-full h-full flex flex-col'>
+                        <span className='flex flex-row justify-between my-2'>
+                          <span className='flex flex-col justify-center items-start'>
+                            <p className='font-semibold text-sm text-gray-200'>Historial de Compras</p>
+                            <p className='text-xs text-gray-400'>{shopInvoice.user}</p>
+                          </span>
+                          <p className='text-gray-400'>{shopInvoice.last_updated}</p>
+                        </span>
+                        {shopInvoice?.items?.length > 0 && (
                         <table className="min-w-full text-center text-sm font-light my-4">
                           <thead className="font-medium text-white">
                             <tr className="border-b border-slate-900 uppercase text-xs">
@@ -272,8 +378,8 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                               <th scope="col" className=" px-2 py-1">Subtotal</th>
                             </tr>
                           </thead>
-                          {shopCart.items.map((item) => (
-                            <tr key={item.id} className="border-b border-slate-700 uppercase text-xs text-white">
+                          {shopInvoice?.items?.map((item) => (
+                            <tr key={item.invoice} className="border-b border-slate-700 uppercase text-xs text-white">
                               <td className="whitespace-nowrap px-2 py-1 text-xs capitalize text-left">{item.details.name}</td>
                               <td className="whitespace-nowrap px-2 py-1">{item.details.lot_number}</td>
                               <td className="whitespace-nowrap px-2 py-1">{item.price.toLocaleString()}</td>
@@ -282,34 +388,9 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                             </tr>
                           ))}
                         </table>
-                        )}
-                        <div className='absolute bottom-10 w-full flex flex-col gap-y-2'>
-                          <span className='flex flex-row justify-between items-center'>
-                            <p className='text-gray-400 text-sm'>Total (IVA incl.):</p>
-                            <p className='text-white font-semibold text-sm'>${shopCart.total.toLocaleString()} (COP)</p>
-                          </span>
-                          {shopCart.items.length < 1 ? (
-                          <p onClick={closeModal} className="h-10 bg-green-500 text-white font-semibold rounded-md py-2 px-4 w-full text-sm text-center uppercase">
-                            PAGAR
-                          </p>
-                          ) : (
-                          loading ? (
-                            <button type="button" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
-                              <CircleLoader loading={loading} size={25} color="#1c1d1f" />
-                            </button>
-                          ) : (
-                            <button onClick={handleSubmit} type="submit" className="h-10 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
-                          )
-                        )}
-                        { success && (<div className="text-lime-400 text-xs">{success}</div>)}
-                        { error && (<div className="text-red-400 text-xs">{error}</div>)}
-                        { !error && !success && (<div className="text-gray-400 text-xs">¿Necesitas Ayuda? support@brm.com</div>)}    
-                        </div>                                       
+                        )}                                      
                       </div>
                     )}
-                  </div>
-                  <div className={`h-full my-4 flex flex-col justify-start items-center px-4 py-2 ${activeCartTab === 'invoice' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
-                      <p>Facturas</p>
                   </div>
                 </div>
               </div>

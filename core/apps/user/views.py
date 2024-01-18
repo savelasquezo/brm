@@ -1,60 +1,68 @@
-import os, uuid
-from django.conf import settings
+import os
 from django.utils import timezone
 
-from rest_framework import generics
+from django.conf import settings
+
+from rest_framework import status, generics
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from rest_framework import status
-from rest_framework.response import Response
+from .models import UserAccount, ShoppingCart, CartItem
+from .serializers import AddItemSerializer, ShoppingCartSerializer, CartItemSerializer
 
-from . import models, serializers
 from apps.item.models import Item
 
 class addItemShopcart(generics.GenericAPIView):
     """
-    API endpoint for adding items to the shopping cart.
+    View to add an item to the shopping cart.
+
+    This endpoint allows authenticated users to add a specified amount of a given item to their shopping cart.
 
     Parameters:
-    - email (str): The email of the user performing the action.
-    - uuid (str): The UUID of the item to be added to the shopping cart.
-    - ammount (int): The quantity of the item to be added.
-
-    Request Method: POST
+    - request (HttpRequest): Django request object.
+    - args: Additional non-keyword arguments.
+    - kwargs: Additional keyword arguments.
 
     Returns:
-    - 200 OK: If the item is successfully added to the shopping cart.
-        Response: {'detail': 'Item Successfully added to ShopCart.'}
-
-    - 400 Bad Request: If there is an error, the item is not found, or the request is malformed.
-        Response: {'error': 'NotFound Lottery.'}
+    Response: HTTP response indicating the result of the operation.
     """
-    serializer_class = serializers.AddItemSerializer
-    permission_classes = [AllowAny]
+    serializer_class = AddItemSerializer
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
+        """
+        Handles POST requests to add an item to the shopping cart.
 
+        Parameters:
+        - request (HttpRequest): Django request object.
+        - args: Additional non-keyword arguments.
+        - kwargs: Additional keyword arguments.
+
+        Returns:
+        Response: HTTP response indicating the result of the operation.
+        """
         email = str(request.data.get('email', ''))
         uuid = str(request.data.get('uuid', ''))
         ammount = int(request.data.get('ammount', ''))
 
         try:
-            cart_user = models.UserAccount.objects.get(email=email)
+
+            cart_user = UserAccount.objects.get(email=email)
             cart_item = Item.objects.get(uuid=uuid)
             cart_item_price = cart_item.price
-            print(f'cart_item_price {cart_item_price}')
-            cart_shop = models.ShoppingCart.objects.get(user=cart_user)
-            existing_item = models.CartItem.objects.filter(shoppcart=cart_shop, item=cart_item).first()
+
+            cart_shop = ShoppingCart.objects.get(user=cart_user)
+            existing_item = CartItem.objects.filter(shoppcart=cart_shop, item=cart_item).first()
 
             if existing_item:
                 existing_item.ammount += ammount
                 existing_item.price = cart_item_price
                 existing_item.save()
             else:
-                new_item = models.CartItem.objects.create(shoppcart=cart_shop, item=cart_item, ammount=ammount, price=cart_item_price)
+                new_item = CartItem.objects.create(shoppcart=cart_shop, item=cart_item, ammount=ammount, price=cart_item_price)
                 new_item.save()
 
-            all_items_cart = models.CartItem.objects.filter(shoppcart=cart_shop)
+            all_items_cart = CartItem.objects.filter(shoppcart=cart_shop)
             cart_shop.total = sum(Item.objects.get(uuid=item.item.uuid).price * item.ammount for item in all_items_cart)
             cart_shop.save()
 
@@ -70,21 +78,47 @@ class addItemShopcart(generics.GenericAPIView):
 
 
 class fetchShopCart(generics.GenericAPIView):
+    """
+    View to fetch the details of a user's shopping cart.
+
+    This endpoint retrieves information about the user's shopping cart, including the items in the cart.
+
+    Parameters:
+    - request (HttpRequest): Django request object.
+    - args: Additional non-keyword arguments.
+    - kwargs: Additional keyword arguments.
+
+    Returns:
+    Response: HTTP response containing the details of the shopping cart.
+    """
+    serializer_class = ShoppingCartSerializer
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
-        email = "email@email.com"
+        """
+        Handles GET requests to fetch the details of a user's shopping cart.
+
+        Parameters:
+        - request (HttpRequest): Django request object.
+        - args: Additional non-keyword arguments.
+        - kwargs: Additional keyword arguments.
+
+        Returns:
+        Response: HTTP response containing the details of the shopping cart.
+        """
 
         try:
-            user = models.UserAccount.objects.get(email=email)
-        except models.UserAccount.DoesNotExist:
+            user = UserAccount.objects.get(email=request.user.email)
+        except UserAccount.DoesNotExist:
             return Response({'detail': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            shopping_cart = models.ShoppingCart.objects.get(user=user)
-            cart_items = models.CartItem.objects.filter(shoppcart=shopping_cart)
-        except models.ShoppingCart.DoesNotExist:
+            shopping_cart = ShoppingCart.objects.get(user=user)
+            cart_items = CartItem.objects.filter(shoppcart=shopping_cart)
+        except ShoppingCart.DoesNotExist:
             return Response({'detail': 'Carrito de compras no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
-        cart_items_serializer = serializers.CartItemSerializer(cart_items, many=True)
+        cart_items_serializer = CartItemSerializer(cart_items, many=True)
         response_data = {
             'id': shopping_cart.id,
             'last_updated': shopping_cart.last_updated.strftime('%m/%d/%Y'),

@@ -23,6 +23,9 @@ class ItemListInline(admin.StackedInline):
 
     def has_add_permission(self, request, obj=None):
        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class InvoiceAdmin(admin.ModelAdmin):

@@ -28,19 +28,12 @@ environ.Env.read_env()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env("SECRET_KEY")
 
-CONFIRMO_KEY_DEVS = os.getenv('CONFIRMO_KEY_DEVS')
-CONFIRMO_KEY_TEST = os.getenv('CONFIRMO_KEY_TEST')
-
-APILAYER_KEY = os.getenv('APILAYER_KEY')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = ["*"]
-#ALLOWED_HOSTS = ["*"]
-#CORS_ALLOWED_ORIGINS = ["http://localhost:3000","http://localhost:8000"]
-
+CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_DEBUG = True
 DEBUG_PROPAGATE_EXCEPTIONS = True

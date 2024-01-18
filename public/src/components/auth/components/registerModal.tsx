@@ -7,7 +7,7 @@ import CircleLoader from 'react-spinners/CircleLoader';
 import {AiOutlineUser} from 'react-icons/ai'
 import {CiMail} from 'react-icons/ci'
 import {FiLock} from 'react-icons/fi'
-
+import { FaCity, FaStreetView } from "react-icons/fa";
 
 type RegisterModalProps = {
   closeModal: () => void;
@@ -22,10 +22,12 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ closeModal }) => {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
+        city: '',
+        street: '',
         password: '',
       });
 
-    const {username, email, password } = formData;
+    const {username, email, city, street, password } = formData;
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -74,6 +76,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ closeModal }) => {
             body: JSON.stringify({
               username,
               email,
+              city,
+              street,
               password,
               re_password
             }),
@@ -100,18 +104,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ closeModal }) => {
     return (
         <div>
             <form onSubmit={onSubmit} className="flex flex-col gap-y-4 p-2">
-                <div className="relative h-12 w-full min-w-[200px]">
-                    <div className="absolute text-gray-500 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><AiOutlineUser/></div>
-                    <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline outline-0 transition-all focus:outline-0 disabled:border-0"
-                        type="text"
-                        name="username"
-                        value={username}
-                        onChange={(e) => onChange(e)}
-                        required
-                        placeholder="Usuario"
-                        readOnly={registrationSuccess}
-                    />
-                </div>
                 <div className="relative gap-y-3 rounded-sm shadow-xl h-12 w-full min-w-[200px]">
                     <div className="absolute text-gray-400 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><CiMail/></div>
                     <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline outline-0 transition-all focus:outline-0 disabled:border-0"
@@ -125,7 +117,42 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ closeModal }) => {
                         readOnly={registrationSuccess}
                     />
                 </div>
-                <ul></ul>
+                <div className="relative h-10 w-full min-w-[200px]">
+                    <div className="absolute text-gray-500 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><AiOutlineUser/></div>
+                    <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline outline-0 transition-all focus:outline-0 disabled:border-0"
+                        type="text"
+                        name="username"
+                        value={username}
+                        onChange={(e) => onChange(e)}
+                        required
+                        placeholder="Usuario"
+                        readOnly={registrationSuccess}
+                    />
+                </div>
+                <div className="relative h-10 w-full min-w-[200px]">
+                    <div className="absolute text-gray-500 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><FaCity/></div>
+                    <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline outline-0 transition-all focus:outline-0 disabled:border-0"
+                        type="text"
+                        name="city"
+                        value={city}
+                        onChange={(e) => onChange(e)}
+                        required
+                        placeholder="Ciudad"
+                        readOnly={registrationSuccess}
+                    />
+                </div>
+                <div className="relative h-10 w-full min-w-[200px]">
+                    <div className="absolute text-gray-500 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><FaStreetView/></div>
+                    <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline outline-0 transition-all focus:outline-0 disabled:border-0"
+                        type="text"
+                        name="street"
+                        value={street}
+                        onChange={(e) => onChange(e)}
+                        required
+                        placeholder="Direccion"
+                        readOnly={registrationSuccess}
+                    />
+                </div>
                  <div className="relative h-12 w-full min-w-[200px]">
                     <div className="absolute text-gray-500 text-lg top-2/4 left-4 grid h-5 w-5 -translate-y-2/4 items-center"><FiLock/></div>
                     <input className="h-full w-full indent-8 text-gray-200 rounded-lg border border-gray-700 focus:border-gray-700 bg-transparent px-3 py-2 !pr-9 text-sm outline-0 ring-0 focus:!ring-0 transition-all focus:outline-0 disabled:border-0"
@@ -154,9 +181,9 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ closeModal }) => {
                   )
                 )}
             </form>
-            { success && (<div className="text-lime-400 text-sm mt-2">{success}</div>)}
-            { error && (<div className="text-red-400 text-sm mt-2">{error}</div>)}
-            { !error && !success && (<div className="text-gray-400 text-xs mt-2 h-6">¿Necesitas Ayuda? support@brm.com</div>)}
+            { success && (<div className="text-lime-400 text-xs mt-2">{success}</div>)}
+            { error && (<div className="text-red-400 text-xs mt-2">{error}</div>)}
+            { !error && !success && (<div className="text-gray-400 text-xs mt-2">¿Necesitas Ayuda? support@brm.com</div>)}
         </div>
     );
 };

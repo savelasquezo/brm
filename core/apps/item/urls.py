@@ -1,7 +1,6 @@
-from django.urls import path, re_path
-import apps.item.views as view
-
+from django.urls import path
+from .views import fetchItems
 
 urlpatterns = [
-    path('fetch-items/', view.fetchItems.as_view(), name='fetch-items'),
+    path('fetch-items/', fetchItems.as_view(), name='fetch-items'),
 ]

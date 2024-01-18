@@ -1,24 +1,41 @@
-from django.conf import settings
-
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated, AllowAny
-
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from . import models, serializers
+from .models import Item
+from .serializers import ItemSerializer
 
 
 class fetchItems(generics.ListAPIView):
     """
-    Endpoint to retrieve details of the currently active items.
-    Requires no authentication.
+    View to fetch a list of available items.
+
+    This endpoint returns a list of items that are marked as active.
+
+    Parameters:
+    - request (HttpRequest): Django request object.
+    - args: Additional non-keyword arguments.
+    - kwargs: Additional keyword arguments.
+
+    Returns:
+    Response: HTTP response containing the list of available items.
     """
-    queryset = models.Item.objects.filter(is_active=True)
-    serializer_class = serializers.ItemSerializer
+    queryset = Item.objects.filter(is_active=True)
+    serializer_class = ItemSerializer
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
+        """
+        Handles GET requests to fetch a list of available items.
+
+        Parameters:
+        - request (HttpRequest): Django request object.
+        - args: Additional non-keyword arguments.
+        - kwargs: Additional keyword arguments.
+
+        Returns:
+        Response: HTTP response containing the list of available items.
+        """
         try:
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)

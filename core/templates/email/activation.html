@@ -1,0 +1,15 @@
+{% block subject %}Activar Email{% endblock subject %}
+
+{% block text_body %}
+  Activa tu cuenta en {{ site_name }}: {{ protocol }}://localhost:3000/{{ url|safe }}
+  Gracias.
+
+  El equipo de {{ site_name }}
+{% endblock text_body %}
+
+{% block html_body %}
+  <p>Activa tu cuenta en {{ site_name }}: <a href="{{ protocol }}://localhost:3000/{{ url|safe }}">{{ protocol }}://localhost:3000/{{ url|safe }}</a></p>
+  <p>Gracias.</p>
+
+  <p>El equipo de {{ site_name }}</p>
+{% endblock html_body %}

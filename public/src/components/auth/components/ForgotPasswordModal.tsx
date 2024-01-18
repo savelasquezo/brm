@@ -88,9 +88,9 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ closeModal })
           )
         )}
       </form>
-      { success && (<div className="text-lime-400 text-sm mt-2">{success}</div>)}
-      { error && (<div className="text-red-400 text-sm mt-2">{error}</div>)}
-      { !error && !success && (<div className="text-gray-400 text-xs mt-2 h-6">¿Necesitas Ayuda? support@brm.com</div>)}
+      { success && (<div className="text-lime-400 text-xs mt-2">{success}</div>)}
+      { error && (<div className="text-red-400 text-xs mt-2">{error}</div>)}
+      { !error && !success && (<div className="text-gray-400 text-xs mt-2">¿Necesitas Ayuda? support@brm.com</div>)}
   </div>
   );
 };

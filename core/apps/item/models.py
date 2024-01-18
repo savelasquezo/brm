@@ -17,7 +17,7 @@ class Item(models.Model):
     price = models.FloatField(_("Precio"), null=False, blank=False,
         help_text="$Costo del Producto (COP)")
 
-    ammount = models.IntegerField(_("Cantidad Disponible"), default=1000, null=False, blank=False,
+    ammount = models.PositiveBigIntegerField(_("Cantidad Disponible"), default=1000, null=False, blank=False,
         help_text="#Numero de Productos en Inventario")
 
     banner = models.ImageField(_("Imagen"), upload_to=ImageUploadTo, max_length=32, null=False, blank=False, 

@@ -7,8 +7,9 @@ import LoginModal from "./loginModal";
 import RegisterModal from "./registerModal";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 import ForgotPasswordConfirmModal from "./ForgotPasswordConfirmModal";
+import CircleLoader from 'react-spinners/CircleLoader';
 
-import {AiOutlineClose, AiFillLock, AiFillUnlock} from 'react-icons/ai'
+import {AiOutlineClose, AiFillLock, AiFillUnlock, AiOutlineShoppingCart} from 'react-icons/ai'
 
 type AuthProps = {
   session: Session | null | undefined;
@@ -18,6 +19,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
 
+    const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [closingModal, setClosingModal] = useState(false);
     const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
@@ -63,6 +65,12 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
         <main className="inline-flex items-center h-full ml-5 lg:w-2/5 lg:justify-end lg:ml-0 gap-x-3">
             {session && session?.user? (
               <div className='inline-flex gap-x-4'>
+                <button onClick={() => openModal('shopcart')}  className="bg-blue-500 hover:bg-blue-700 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">
+                  <span className='flex flex-row text-lg items-center justify-between h-4 w-10'>
+                    <AiOutlineShoppingCart /> 
+                    <p className='text-sm'>(2)</p>
+                  </span>
+                </button>
                 <button onClick={() => {signOut();}} className="bg-pink-700 hover:bg-pink-900 text-white uppercase text-xs font-semibold p-2 rounded transition-colors duration-300">Salir</button>
               </div>
               ) : (
@@ -71,7 +79,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                 <button onClick={() => openModal('singup')} className="bg-pink-700 hover:bg-pink-900 text-white text-sm font-semibold py-1 px-2 rounded transition-colors duration-300">Inscribirse</button>
               </div>
             )}
-            {showModal && (
+            {showModal && activeTab !== 'shopcart' && (
             <div className={`fixed top-0 left-0 w-full h-full flex items-center justify-center transition bg-opacity-50 bg-gray-900 backdrop-blur-sm z-40 ${closingModal ? "animate-fade-out animate__animated animate__fadeOut" : "animate-fade-in animate__animated animate__fadeIn"}`}>
                 <div className="relative w-1/4 flex h-3/4">
                   <button onClick={closeModal} className='absolute top-4 right-4 text-xl text-gray-400 hover:text-gray-600 transition-colors duration-300' ><AiOutlineClose /></button>
@@ -85,7 +93,7 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                         <button onClick={() => openModal('forgot-password')} className={`text-gray-100 rounded-full px-2 py-1 inline-flex text-sm font-semibold transition duration-300 mr-2 ${activeTab === 'forgot-password' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}`}><AiFillLock/></button>
                         )}
                     </div>
-                    <div style={{ display: activeTab === 'login' ? 'block' : 'none' }} className={`h-full my-4 ${activeTab === 'login' ? 'animate-fade-in animate__animated animate__fadeIn' : 'animate-fade-out animate__animated animate__fadeOut'} ${activeTab === 'signup' ? 'hidden' : ''}`}>
+                    <div className={`h-full my-4 ${activeTab === 'login' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
                       <LoginModal closeModal={closeModal}/>
                       <div className="text-start items-center inline-flex gap-x-2">
                         <p className="text-xs text-gray-300">¿No tienes una cuenta?</p>
@@ -93,21 +101,21 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                       </div><br />
                       <button onClick={() => openModal('forgot-password')} className="hover:underline text-xs text-blue-500">¿Olvidaste la contraseña?</button>
                     </div>
-                    <div style={{ display: activeTab === 'singup' ? 'block' : 'none' }} className={`h-full my-4 ${activeTab === 'singup' ? 'animate-fade-in animate__animated animate__fadeIn' : 'animate-fade-out animate__animated animate__fadeOut'} ${activeTab === 'login' ? 'hidden' : ''}`}>
+                    <div className={`h-full my-4 ${activeTab === 'singup' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
                       <RegisterModal closeModal={closeModal}/>
                       <div className="inline-flex gap-x-2 items-center">
                         <p className="text-xs text-gray-300">¿Ya tienes una cuenta?</p>
                         <button onClick={() => openModal('login')} className="cursor-pointer text-red-500 hover:text-pink-600 transition-colors duration-300 -mt-1">Ingresar</button>
                       </div>
                     </div>
-                    <div style={{ display: activeTab === 'forgot-password' ? 'block' : 'none' }} className={`h-full my-4 ${activeTab === 'forgot-password' ? 'animate-fade-in animate__animated animate__fadeIn' : 'animate-fade-out animate__animated animate__fadeOut'} ${activeTab === 'login' ? 'hidden' : ''}`}>
+                    <div className={`h-full my-4 ${activeTab === 'forgot-password' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
                       <ForgotPasswordModal closeModal={closeModal}/>
                       <div className="inline-flex gap-x-2 items-center">
                         <p className="text-xs text-gray-300">¿Ya tienes una cuenta?</p>
                         <button onClick={() => openModal('login')} className="cursor-pointer text-red-500 hover:text-pink-600 transition-colors duration-300 -mt-1">Ingresar</button>
                       </div>
                     </div>
-                    <div style={{ display: activeTab === 'forgot_password_confirm' ? 'block' : 'none' }} className={`h-full my-4 ${activeTab === 'forgot_password_confirm' ? 'animate-fade-in animate__animated animate__fadeIn' : 'animate-fade-out animate__animated animate__fadeOut'} ${activeTab === 'login' ? 'hidden' : ''}`}>
+                    <div className={`h-full my-4 ${activeTab === 'forgot_password_confirm' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
                       <ForgotPasswordConfirmModal closeModal={closeModal} updateForgotPasswordModalState={updateForgotPasswordModalState}/>
                       <div className="inline-flex gap-x-2 items-center">
                         <p className="text-xs text-gray-300">¿Ya tienes una cuenta?</p>
@@ -117,6 +125,25 @@ const Auth: React.FC<AuthProps> = ({ session  }) => {
                   </div>
                 </div>
               </div>
+          )}
+          {showModal && activeTab === 'shopcart' && (
+            <div className={`fixed top-0 left-0 w-full h-full flex items-center justify-center transition bg-opacity-50 bg-gray-900 backdrop-blur-sm z-40 ${closingModal ? "animate-fade-out animate__animated animate__fadeOut" : "animate-fade-in animate__animated animate__fadeIn"}`}>
+              <div className="relative w-1/3 h-3/4">
+                <button onClick={closeModal} className='absolute top-4 right-4 text-xl text-gray-400 hover:text-gray-600 transition-colors duration-300' ><AiOutlineClose /></button>
+                <div className="w-full h-full bg-gray-800 rounded-2xl p-6">
+                  <div className={`h-full my-4 flex flex-col justify-between items-center px-4 py-2 ${activeTab === 'shopcart' ? 'block animate-fade-in animate__animated animate__fadeIn' : 'hidden animate-fade-out animate__animated animate__fadeOut'}`}>
+                    <p>Aqui van todos los detalles</p>
+                    {loading ? (
+                      <button type="button" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center flex items-center justify-center">
+                        <CircleLoader loading={loading} size={25} color="#1c1d1f" />
+                      </button>
+                    ) : (
+                      <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full text-center">Confirmar</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
         </main>
     );

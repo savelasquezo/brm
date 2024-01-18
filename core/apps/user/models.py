@@ -70,12 +70,14 @@ class ShoppingCart(models.Model):
         return f"Shopcart-{self.user}"
 
     class Meta:
-        verbose_name = _("Shocart")
-        verbose_name_plural = _("Shocarts")
+        verbose_name = _("Shopcart")
+        verbose_name_plural = _("Shopcarts")
 
 class CartItem(models.Model):
     shoppcart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    price = models.FloatField(_("Precio"), null=False, blank=False,
+        help_text="$Costo del Producto (COP)")
     ammount = models.PositiveIntegerField(_("Cantidad"),default=1)
 
     def __str__(self):

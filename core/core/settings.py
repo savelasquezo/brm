@@ -54,7 +54,7 @@ LOGGING = {
         'file': {
             'level': 'ERROR',
             'class': 'logging.FileHandler',
-            'filename': '/home/savelasquezo/BRM/core/logs/django.log',
+            'filename': '/home/savelasquezo/BRM/core/logs/core.log',
         },
     },
     'loggers': {

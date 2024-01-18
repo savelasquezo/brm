@@ -19,13 +19,13 @@ class CartItemInline(admin.StackedInline):
 
     fieldsets = (
         (" ", {"fields": 
-            (('item','ammount'),)
+            (('item','price','ammount'),)
             }
         ),
     )
 
     # def get_readonly_fields(self, request, obj=None):
-    #    return ['item','ammount']
+    #    return ['item','price','ammount']
 
     # def has_add_permission(self, request, obj=None):
     #    return False

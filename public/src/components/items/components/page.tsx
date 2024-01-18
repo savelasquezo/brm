@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Session } from 'next-auth';
 import { NextResponse } from 'next/server';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -66,17 +67,7 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
       }, 500);
   };
 
-  //const [formData, setFormData] = useState({
-  //  email: session?.user?.email || '',
-  //  uuid: '',
-  //  ammount: '',
-  //});
   const [formData, setFormData] = useState<{ [key: string]: FormDataItem }>({});
-
-  const {email, uuid, ammount } = formData;
-  //const onChange = (e: React.ChangeEvent<HTMLInputElement>, uuid: string) => setFormData(
-  //  { ...formData, [e.target.name]: e.target.value }
-  //);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>, uuid: string) => {
     const newFormData = { ...formData };
@@ -86,31 +77,43 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
   
 
   useEffect(() => {
-    fetchItems()
-      .then((data) => {
+    const websocketURL = `${process.env.NEXT_PUBLIC_WEBSOCKET_APP}/app/ws/items/`;
+    const client = new W3CWebSocket(websocketURL);
+
+    client.onmessage = (message) => {
+      let data;
+      if (typeof message.data === 'string') {
+        data = JSON.parse(message.data);
+      }
         setListItems(data);
-      })
-      .catch((error) => {
-        console.error('Error fetching Items:', error);
-      });
-  }, []);
+    }
+
+    return () => {
+      if (client.readyState === client.OPEN) {
+        client.close();
+      }
+    };
+  },);
+
+
 
   const handleSubmit = async (e: React.FormEvent, listItem: any) => {
     e.preventDefault();
     setSuccess('');
     setError('');
 
-    const formAmmount = formData[listItem.uuid]?.ammount
+    const email = session?.user?.email
+    const uuid = listItem.uuid
+    const ammount = formData[listItem.uuid]?.ammount
 
-    const isAmmountValid = /^[0-9]+$/.test(formAmmount);
+    const isAmmountValid = /^[0-9]+$/.test(ammount);
     if (!isAmmountValid) {
       setError('¡Error - Ingrese un numero valido!');
       return;
     }
 
-
-    if (formAmmount > listItem.ammount) {
-      setError('¡Lamentablemente no hay suficiente Inventario!');
+    if (ammount > listItem.ammount) {
+      setError("¡Lamentablemente no hay suficiente Inventario!");
       return;
     }
 
@@ -143,31 +146,35 @@ const Header: React.FC<ItemsProps> = ({ session  }) => {
             listItems.map((listItem, i) => (
             <div key={i} className="relative items-center rounded-sm h-40 md:h-80 shadow-inner">
                 <span className='absolute top-0 flex items-center justify-center text-sm font-semibold text-white bg-gray-800 hover:bg-gray-900 border-slate-950 h-8 w-full uppercase'>{listItem.name}</span>
-                <Image loader={imageLoader} width={1240} height={550} src={listItem.banner} className="bg-slate-100 h-[calc(100%-16px)] mt-8 w-full object-cover rounded-t-sm z-0" alt="" />
-                <form className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full'>
-                <input
-                className='bg-gray-100 ml-4 text-center rounded-sm outline-0 focus:outline-0 disabled:border-0 w-20'
-                type="text"
-                name="ammount"
-                id={`ammount_${listItem.uuid}`}
-                minLength={1}
-                maxLength={6}
-                value={formData[listItem.uuid]?.ammount || ''}
-                onChange={(e) => onChange(e, listItem.uuid)}
-                required
-              />
-                  <button onClick={(event) => {handleSubmit(event, listItem); openModal();}} type='submit' className="flex items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300 h-full px-4">
-                      <span className='text-white font-semibold text-md'><AiOutlineShoppingCart /></span>
-                      <span className="block text-white shadow-inner text-xs uppercase font-semibold">
-                          Agregar
-                      </span>
-                  </button>
-                </form>
+                <Image loader={imageLoader} width={1240} height={550} src={`${process.env.NEXT_PUBLIC_APP_API_URL}${listItem.banner}`} className="bg-slate-100 h-[calc(100%-16px)] mt-8 w-full object-cover rounded-t-sm z-0" alt="" />
+                {session && session?.user? (
+                  <form className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full'>
+                    <input
+                      className='bg-gray-100 ml-4 text-center rounded-sm outline-0 focus:outline-0 disabled:border-0 w-20'
+                      type="text"
+                      name="ammount"
+                      id={`ammount_${listItem.uuid}`}
+                      minLength={1}
+                      maxLength={6}
+                      value={formData[listItem.uuid]?.ammount || ''}
+                      onChange={(e) => onChange(e, listItem.uuid)}
+                      required
+                    />
+                    <button onClick={(event) => {handleSubmit(event, listItem); openModal();}} type='submit' className="flex items-center justify-between gap-x-2 bg-blue-800 hover:bg-blue-900  border-blue-950 transition-colors duration-300 h-full px-4">
+                        <span className='text-white font-semibold text-md'><AiOutlineShoppingCart /></span>
+                        <span className="block text-white shadow-inner text-xs uppercase font-semibold">
+                            Agregar
+                        </span>
+                    </button>
+                  </form>
+                ) : (
+                  <div className='flex flex-row justify-between items-center bg-gray-800 hover:bg-gray-900 border-slate-950 h-12 w-full'></div>
+                )}
             </div>
             ))
             ) : (
             <div className="relative flex flex-col items-center rounded-sm h-40 md:h-80 shadow-inner">
-              <p>No hay productos disponibles</p>
+              <p>Cargado Articulos</p>
             </div>
           )}
           {showModal && (

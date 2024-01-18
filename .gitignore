@@ -35,7 +35,6 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -131,7 +130,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.venv
 env/
 venv/
 ENV/
@@ -190,7 +188,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-!/lib/types/next-env.d.ts
 
 public/.next/
 next-sitemap.config.js
